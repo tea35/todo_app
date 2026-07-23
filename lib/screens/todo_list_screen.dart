@@ -72,13 +72,27 @@ class _TodoListScreenState extends State<TodoListScreen> {
                 final todo = _todos[index];
                 return ListTile(
                   title: Text(todo.title),
-                  trailing: Checkbox(
-                    value: todo.isDone,
-                    onChanged: (value) {
-                      setState(() {
-                        todo.isDone = value ?? false;
-                      });
-                    },
+                  trailing: Row(
+                    mainAxisSize:
+                        MainAxisSize.min, // ← Rowの幅を中身分だけに抑える(前回学んだやつです)
+                    children: [
+                      Checkbox(
+                        value: todo.isDone,
+                        onChanged: (value) {
+                          setState(() {
+                            todo.isDone = value ?? false;
+                          });
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          setState(() {
+                            _todos.removeAt(index);
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 );
               },
