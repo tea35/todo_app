@@ -70,31 +70,45 @@ class _TodoListScreenState extends State<TodoListScreen> {
               itemCount: _todos.length,
               itemBuilder: (context, index) {
                 final todo = _todos[index];
-                return ListTile(
-                  title: Text(todo.title),
-                  trailing: Row(
-                    mainAxisSize:
-                        MainAxisSize.min, // ← Rowの幅を中身分だけに抑える(前回学んだやつです)
-                    children: [
-                      Checkbox(
-                        value: todo.isDone,
-                        onChanged: (value) {
-                          setState(() {
-                            todo.isDone = value ?? false;
-                          });
-                        },
+                return Dismissible(
+                    key: ValueKey(todo), // ← 各アイテムを識別するための一意なキー
+                    direction: DismissDirection.endToStart, // 右から左へのスワイプのみ許可
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    onDismissed: (direction) {
+                      setState(() {
+                        _todos.removeAt(index);
+                      });
+                    },
+                    child: ListTile(
+                      title: Text(todo.title),
+                      trailing: Row(
+                        mainAxisSize:
+                            MainAxisSize.min, // ← Rowの幅を中身分だけに抑える(前回学んだやつです)
+                        children: [
+                          Checkbox(
+                            value: todo.isDone,
+                            onChanged: (value) {
+                              setState(() {
+                                todo.isDone = value ?? false;
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              setState(() {
+                                _todos.removeAt(index);
+                              });
+                            },
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            _todos.removeAt(index);
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                );
+                    ));
               },
             ),
           ),
