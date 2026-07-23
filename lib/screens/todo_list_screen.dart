@@ -98,14 +98,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
                               });
                             },
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () {
-                              setState(() {
-                                _todos.removeAt(index);
-                              });
-                            },
-                          ),
                         ],
                       ),
                     ));
