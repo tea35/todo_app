@@ -15,27 +15,77 @@ class _TodoListScreenState extends State<TodoListScreen> {
     Todo(title: '部屋を片付ける'),
   ];
 
+  final TextEditingController _textController = TextEditingController();
+
+  void _addTodo() {
+    final text = _textController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() {
+      _todos.add(Todo(title: text));
+    });
+
+    _textController.clear();
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Todoリスト'),
-        backgroundColor: Colors.deepPurple[300],
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: ListView.builder(
-          itemCount: _todos.length,
-          itemBuilder: (context, index) {
-            final todo = _todos[index];
-            return ListTile(
-                title: Text(todo.title),
-                trailing: Checkbox(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _textController,
+                    decoration: const InputDecoration(
+                      hintText: 'タスクを入力',
+                      border: OutlineInputBorder(),
+                    ),
+                    onSubmitted: (_) => _addTodo(), // Enterキーでも追加できる
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _addTodo,
+                  child: const Text('追加'),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _todos.length,
+              itemBuilder: (context, index) {
+                final todo = _todos[index];
+                return ListTile(
+                  title: Text(todo.title),
+                  trailing: Checkbox(
                     value: todo.isDone,
-                    onChanged: (bool? value) {
+                    onChanged: (value) {
                       setState(() {
                         todo.isDone = value ?? false;
                       });
-                    }));
-          }),
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
