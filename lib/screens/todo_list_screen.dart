@@ -1,42 +1,22 @@
 import 'package:flutter/material.dart';
-import '../models/todo.dart';
-import '../repositories/todo_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/todo_notifier.dart';
 
-class TodoListScreen extends StatefulWidget {
+class TodoListScreen extends ConsumerStatefulWidget {
   const TodoListScreen({super.key});
 
   @override
-  State<TodoListScreen> createState() => _TodoListScreenState();
+  ConsumerState<TodoListScreen> createState() => _TodoListScreenState();
 }
 
-class _TodoListScreenState extends State<TodoListScreen> {
-  final List<Todo> _todos = [];
+class _TodoListScreenState extends ConsumerState<TodoListScreen> {
   final TextEditingController _textController = TextEditingController();
-  final TodoRepository _repository = TodoRepository(); // ← Repositoryのインスタンスを保持
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTodos();
-  }
-
-  Future<void> _loadTodos() async {
-    final todos = await _repository.loadTodos();
-    setState(() {
-      _todos.clear();
-      _todos.addAll(todos);
-    });
-  }
 
   void _addTodo() {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _todos.add(Todo(title: text));
-    });
-    _repository.saveTodos(_todos); // ← 直接SharedPreferencesを呼ばず、Repository経由に
-
+    ref.read(todoListProvider.notifier).addTodo(text);
     _textController.clear();
   }
 
@@ -48,6 +28,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final todos = ref.watch(todoListProvider);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -79,9 +61,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: _todos.length,
+              itemCount: todos.length,
               itemBuilder: (context, index) {
-                final todo = _todos[index];
+                final todo = todos[index];
                 return Dismissible(
                   key: ValueKey(todo),
                   direction: DismissDirection.endToStart,
@@ -92,20 +74,14 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
                   onDismissed: (direction) {
-                    setState(() {
-                      _todos.removeAt(index);
-                    });
-                    _repository.saveTodos(_todos); // ← ここも変更
+                    ref.read(todoListProvider.notifier).removeAt(index);
                   },
                   child: ListTile(
                     title: Text(todo.title),
                     trailing: Checkbox(
                       value: todo.isDone,
                       onChanged: (value) {
-                        setState(() {
-                          todo.isDone = value ?? false;
-                        });
-                        _repository.saveTodos(_todos); // ← ここも変更
+                        ref.read(todoListProvider.notifier).toggleDone(index);
                       },
                     ),
                   ),
