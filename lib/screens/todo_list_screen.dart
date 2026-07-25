@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/todo.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import '../repositories/todo_repository.dart';
 
 class TodoListScreen extends StatefulWidget {
   const TodoListScreen({super.key});
@@ -13,6 +12,7 @@ class TodoListScreen extends StatefulWidget {
 class _TodoListScreenState extends State<TodoListScreen> {
   final List<Todo> _todos = [];
   final TextEditingController _textController = TextEditingController();
+  final TodoRepository _repository = TodoRepository(); // ← Repositoryのインスタンスを保持
 
   @override
   void initState() {
@@ -21,29 +21,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
   }
 
   Future<void> _loadTodos() async {
-    final prefs = await SharedPreferences.getInstance();
-    final todoListString = prefs.getString('todos');
-    if (todoListString != null) {
-      final decoded = jsonDecode(todoListString) as List;
-      setState(() {
-        _todos.clear();
-        _todos.addAll(decoded.map((item) => Todo(
-              title: item['title'],
-              isDone: item['isDone'],
-            )));
-      });
-    }
-  }
-
-  Future<void> _saveTodos() async {
-    final prefs = await SharedPreferences.getInstance();
-    final todoListJson = _todos
-        .map((todo) => {
-              'title': todo.title,
-              'isDone': todo.isDone,
-            })
-        .toList();
-    await prefs.setString('todos', jsonEncode(todoListJson));
+    final todos = await _repository.loadTodos();
+    setState(() {
+      _todos.clear();
+      _todos.addAll(todos);
+    });
   }
 
   void _addTodo() {
@@ -53,7 +35,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     setState(() {
       _todos.add(Todo(title: text));
     });
-    _saveTodos();
+    _repository.saveTodos(_todos); // ← 直接SharedPreferencesを呼ばず、Repository経由に
 
     _textController.clear();
   }
@@ -68,8 +50,8 @@ class _TodoListScreenState extends State<TodoListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Todoリスト'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('TODOリスト'),
       ),
       body: Column(
         children: [
@@ -84,7 +66,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       hintText: 'タスクを入力',
                       border: OutlineInputBorder(),
                     ),
-                    onSubmitted: (_) => _addTodo(), // Enterキーでも追加できる
+                    onSubmitted: (_) => _addTodo(),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -101,38 +83,33 @@ class _TodoListScreenState extends State<TodoListScreen> {
               itemBuilder: (context, index) {
                 final todo = _todos[index];
                 return Dismissible(
-                    key: ValueKey(todo), // ← 各アイテムを識別するための一意なキー
-                    direction: DismissDirection.endToStart, // 右から左へのスワイプのみ許可
-                    background: Container(
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: const Icon(Icons.delete, color: Colors.white),
+                  key: ValueKey(todo),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  onDismissed: (direction) {
+                    setState(() {
+                      _todos.removeAt(index);
+                    });
+                    _repository.saveTodos(_todos); // ← ここも変更
+                  },
+                  child: ListTile(
+                    title: Text(todo.title),
+                    trailing: Checkbox(
+                      value: todo.isDone,
+                      onChanged: (value) {
+                        setState(() {
+                          todo.isDone = value ?? false;
+                        });
+                        _repository.saveTodos(_todos); // ← ここも変更
+                      },
                     ),
-                    onDismissed: (direction) {
-                      setState(() {
-                        _todos.removeAt(index);
-                      });
-                      _saveTodos();
-                    },
-                    child: ListTile(
-                      title: Text(todo.title),
-                      trailing: Row(
-                        mainAxisSize:
-                            MainAxisSize.min, // ← Rowの幅を中身分だけに抑える(前回学んだやつです)
-                        children: [
-                          Checkbox(
-                            value: todo.isDone,
-                            onChanged: (value) {
-                              setState(() {
-                                todo.isDone = value ?? false;
-                              });
-                              _saveTodos();
-                            },
-                          ),
-                        ],
-                      ),
-                    ));
+                  ),
+                );
               },
             ),
           ),
