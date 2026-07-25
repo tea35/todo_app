@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/todo.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class TodoListScreen extends StatefulWidget {
   const TodoListScreen({super.key});
@@ -9,13 +11,40 @@ class TodoListScreen extends StatefulWidget {
 }
 
 class _TodoListScreenState extends State<TodoListScreen> {
-  final List<Todo> _todos = [
-    Todo(title: '牛乳を買う'),
-    Todo(title: 'レポートを書く'),
-    Todo(title: '部屋を片付ける'),
-  ];
-
+  final List<Todo> _todos = [];
   final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTodos();
+  }
+
+  Future<void> _loadTodos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final todoListString = prefs.getString('todos');
+    if (todoListString != null) {
+      final decoded = jsonDecode(todoListString) as List;
+      setState(() {
+        _todos.clear();
+        _todos.addAll(decoded.map((item) => Todo(
+              title: item['title'],
+              isDone: item['isDone'],
+            )));
+      });
+    }
+  }
+
+  Future<void> _saveTodos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final todoListJson = _todos
+        .map((todo) => {
+              'title': todo.title,
+              'isDone': todo.isDone,
+            })
+        .toList();
+    await prefs.setString('todos', jsonEncode(todoListJson));
+  }
 
   void _addTodo() {
     final text = _textController.text.trim();
@@ -24,6 +53,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
     setState(() {
       _todos.add(Todo(title: text));
     });
+    _saveTodos();
 
     _textController.clear();
   }
@@ -83,6 +113,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                       setState(() {
                         _todos.removeAt(index);
                       });
+                      _saveTodos();
                     },
                     child: ListTile(
                       title: Text(todo.title),
@@ -96,6 +127,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                               setState(() {
                                 todo.isDone = value ?? false;
                               });
+                              _saveTodos();
                             },
                           ),
                         ],
