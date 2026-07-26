@@ -77,7 +77,15 @@ class _TodoListScreenState extends ConsumerState<TodoListScreen> {
                     ref.read(todoListProvider.notifier).removeAt(index);
                   },
                   child: ListTile(
-                    title: Text(todo.title),
+                    title: Text(
+                      todo.title,
+                      style: TextStyle(
+                        decoration: todo.isDone
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                        color: todo.isDone ? Colors.grey : null,
+                      ),
+                    ),
                     trailing: Checkbox(
                       value: todo.isDone,
                       onChanged: (value) {
