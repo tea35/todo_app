@@ -29,11 +29,12 @@ class _TodoListScreenState extends ConsumerState<TodoListScreen> {
   @override
   Widget build(BuildContext context) {
     final todos = ref.watch(todoListProvider);
+    final incompleteCount = todos.where((todo) => !todo.isDone).length;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('TODOリスト'),
+        title: Text('TODOリスト (未完了: $incompleteCount / 全${todos.length}件)'),
       ),
       body: Column(
         children: [
