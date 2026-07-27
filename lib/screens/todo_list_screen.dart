@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/todo_notifier.dart';
-import '../widgets/todo_filter_tabs.dart';
-import '../widgets/todo_input_field.dart';
-import '../widgets/todo_list_item.dart';
+import '../widgets/widgets.dart';
 
 class TodoListScreen extends ConsumerWidget {
   const TodoListScreen({super.key});
