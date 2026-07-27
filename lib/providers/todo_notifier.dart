@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/todo.dart';
+import '../models/todo_filter.dart';
 import '../repositories/todo_repository.dart';
 
 final todoRepositoryProvider = Provider<TodoRepository>((ref) {
@@ -52,3 +53,30 @@ class TodoNotifier extends Notifier<List<Todo>> {
     repository.saveTodos(state);
   }
 }
+
+final todoFilterProvider = NotifierProvider<TodoFilterNotifier, TodoFilter>(() {
+  return TodoFilterNotifier();
+});
+
+class TodoFilterNotifier extends Notifier<TodoFilter> {
+  @override
+  TodoFilter build() => TodoFilter.all; // 初期値は「すべて表示」
+
+  void setFilter(TodoFilter filter) {
+    state = filter;
+  }
+}
+
+final filteredTodoListProvider = Provider<List<Todo>>((ref) {
+  final todos = ref.watch(todoListProvider);
+  final filter = ref.watch(todoFilterProvider);
+
+  switch (filter) {
+    case TodoFilter.active:
+      return todos.where((todo) => !todo.isDone).toList();
+    case TodoFilter.completed:
+      return todos.where((todo) => todo.isDone).toList();
+    case TodoFilter.all:
+      return todos;
+  }
+});

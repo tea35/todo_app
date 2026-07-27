@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/todo_notifier.dart';
+import '../models/todo_filter.dart';
 
 class TodoListScreen extends ConsumerStatefulWidget {
   const TodoListScreen({super.key});
@@ -28,16 +29,34 @@ class _TodoListScreenState extends ConsumerState<TodoListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final todos = ref.watch(todoListProvider);
-    final incompleteCount = todos.where((todo) => !todo.isDone).length;
+    final todos = ref.watch(filteredTodoListProvider);
+    final allTodos = ref.watch(todoListProvider);
+    final incompleteCount = allTodos.where((todo) => !todo.isDone).length;
+    final currentFilter = ref.watch(todoFilterProvider);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('TODOリスト (未完了: $incompleteCount / 全${todos.length}件)'),
+        title: Text('TODOリスト (未完了: $incompleteCount / 全${allTodos.length}件)'),
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: SegmentedButton<TodoFilter>(
+              segments: const [
+                ButtonSegment(value: TodoFilter.all, label: Text('すべて')),
+                ButtonSegment(value: TodoFilter.active, label: Text('未完了')),
+                ButtonSegment(value: TodoFilter.completed, label: Text('完了済み')),
+              ],
+              selected: {currentFilter},
+              onSelectionChanged: (newSelection) {
+                ref
+                    .read(todoFilterProvider.notifier)
+                    .setFilter(newSelection.first);
+              },
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Row(
@@ -75,7 +94,9 @@ class _TodoListScreenState extends ConsumerState<TodoListScreen> {
                     child: const Icon(Icons.delete, color: Colors.white),
                   ),
                   onDismissed: (direction) {
-                    ref.read(todoListProvider.notifier).removeAt(index);
+                    final originalIndex =
+                        ref.read(todoListProvider).indexOf(todo);
+                    ref.read(todoListProvider.notifier).removeAt(originalIndex);
                   },
                   child: ListTile(
                     title: Text(
@@ -90,7 +111,11 @@ class _TodoListScreenState extends ConsumerState<TodoListScreen> {
                     trailing: Checkbox(
                       value: todo.isDone,
                       onChanged: (value) {
-                        ref.read(todoListProvider.notifier).toggleDone(index);
+                        final originalIndex =
+                            ref.read(todoListProvider).indexOf(todo);
+                        ref
+                            .read(todoListProvider.notifier)
+                            .toggleDone(originalIndex);
                       },
                     ),
                   ),
