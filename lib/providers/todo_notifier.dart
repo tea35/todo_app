@@ -40,6 +40,17 @@ class TodoNotifier extends Notifier<List<Todo>> {
     _save();
   }
 
+  void editTodo(int index, String newTitle) {
+    state = [
+      for (int i = 0; i < state.length; i++)
+        if (i == index)
+          Todo(title: newTitle, isDone: state[i].isDone)
+        else
+          state[i]
+    ];
+    _save();
+  }
+
   void removeAt(int index) {
     state = [
       for (int i = 0; i < state.length; i++)
