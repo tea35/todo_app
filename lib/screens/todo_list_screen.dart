@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/todo_notifier.dart';
 import '../widgets/widgets.dart';
+import '../models/todo_filter.dart';
 
 class TodoListScreen extends ConsumerWidget {
   const TodoListScreen({super.key});
@@ -11,6 +12,7 @@ class TodoListScreen extends ConsumerWidget {
     final todos = ref.watch(filteredTodoListProvider);
     final allTodos = ref.watch(todoListProvider);
     final incompleteCount = allTodos.where((todo) => !todo.isDone).length;
+    final currentFilter = ref.watch(todoFilterProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -22,12 +24,27 @@ class TodoListScreen extends ConsumerWidget {
           const TodoFilterTabs(),
           const TodoInputField(),
           Expanded(
-            child: ListView.builder(
-              itemCount: todos.length,
-              itemBuilder: (context, index) {
-                return TodoListItem(todo: todos[index]);
-              },
-            ),
+            child: currentFilter == TodoFilter.all
+                ? ReorderableListView.builder(
+                    itemCount: todos.length,
+                    itemBuilder: (context, index) {
+                      return TodoListItem(
+                        key: ValueKey(todos[index]),
+                        todo: todos[index],
+                      );
+                    },
+                    onReorder: (oldIndex, newIndex) {
+                      ref
+                          .read(todoListProvider.notifier)
+                          .reorder(oldIndex, newIndex);
+                    },
+                  )
+                : ListView.builder(
+                    itemCount: todos.length,
+                    itemBuilder: (context, index) {
+                      return TodoListItem(todo: todos[index]);
+                    },
+                  ),
           ),
         ],
       ),

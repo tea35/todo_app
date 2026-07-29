@@ -14,18 +14,18 @@ final todoListProvider = NotifierProvider<TodoNotifier, List<Todo>>(() {
 class TodoNotifier extends Notifier<List<Todo>> {
   @override
   List<Todo> build() {
-    _loadTodos(); // 初期化時に読み込みを開始
-    return []; // 最初は空リストを返す(読み込み完了後にstateを更新する)
+    _loadTodos();
+    return [];
   }
 
   Future<void> _loadTodos() async {
     final repository = ref.read(todoRepositoryProvider);
     final todos = await repository.loadTodos();
-    state = todos; // 読み込み完了後、stateを更新 → 画面が自動的に再描画される
+    state = todos;
   }
 
   void addTodo(String title) {
-    state = [...state, Todo(title: title)]; // 既存配列 + 新しい要素 で新しい配列を作る
+    state = [...state, Todo(title: title)];
     _save();
   }
 
@@ -48,6 +48,20 @@ class TodoNotifier extends Notifier<List<Todo>> {
         else
           state[i]
     ];
+    _save();
+  }
+
+  void reorder(int oldIndex, int newIndex) {
+    final newList = [...state];
+
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+
+    final item = newList.removeAt(oldIndex);
+    newList.insert(newIndex, item);
+
+    state = newList;
     _save();
   }
 
