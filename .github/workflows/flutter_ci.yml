@@ -1,0 +1,33 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Flutter SDKをセットアップ
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.2"
+          channel: "stable"
+
+      - name: パッケージを取得
+        run: flutter pub get
+
+      - name: 静的解析
+        run: flutter analyze
+
+      - name: テスト実行
+        run: flutter test
+
+      - name: APKビルド確認
+        run: flutter build apk --debug
