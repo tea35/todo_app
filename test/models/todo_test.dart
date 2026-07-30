@@ -4,13 +4,13 @@ import 'package:todo_app/models/todo.dart';
 void main() {
   group('Todo', () {
     test('初期状態ではisDoneがfalseになる', () {
-      final todo = Todo(title: 'テストタスク');
+      final todo = Todo(id: 'test-id-1', title: 'テストタスク');
       expect(todo.title, 'テストタスク');
       expect(todo.isDone, false);
     });
 
     test('isDoneをtrueで初期化できる', () {
-      final todo = Todo(title: 'テストタスク', isDone: true);
+      final todo = Todo(id: 'test-id-2', title: 'テストタスク', isDone: true);
       expect(todo.isDone, true);
     });
   });
