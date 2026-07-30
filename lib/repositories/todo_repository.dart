@@ -1,35 +1,39 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/todo.dart';
 
 class TodoRepository {
-  static const _storageKey = 'todos';
+  final CollectionReference _todosCollection =
+      FirebaseFirestore.instance.collection('todos');
 
-  Future<List<Todo>> loadTodos() async {
-    final prefs = await SharedPreferences.getInstance();
-    final todoListString = prefs.getString(_storageKey);
-
-    if (todoListString == null) {
-      return [];
-    }
-
-    final decoded = jsonDecode(todoListString) as List;
-    return decoded
-        .map((item) => Todo(
-              title: item['title'],
-              isDone: item['isDone'],
-            ))
-        .toList();
+  // Firestoreからリアルタイムでデータの変化を受け取るストリーム
+  Stream<List<Todo>> watchTodos() {
+    return _todosCollection.snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return Todo(
+          id: doc.id,
+          title: data['title'],
+          isDone: data['isDone'],
+        );
+      }).toList();
+    });
   }
 
-  Future<void> saveTodos(List<Todo> todos) async {
-    final prefs = await SharedPreferences.getInstance();
-    final todoListJson = todos
-        .map((todo) => {
-              'title': todo.title,
-              'isDone': todo.isDone,
-            })
-        .toList();
-    await prefs.setString(_storageKey, jsonEncode(todoListJson));
+  Future<void> addTodo(String title) async {
+    await _todosCollection.add({
+      'title': title,
+      'isDone': false,
+    });
+  }
+
+  Future<void> updateTodo(Todo todo) async {
+    await _todosCollection.doc(todo.id).update({
+      'title': todo.title,
+      'isDone': todo.isDone,
+    });
+  }
+
+  Future<void> deleteTodo(String id) async {
+    await _todosCollection.doc(id).delete();
   }
 }

@@ -27,8 +27,7 @@ class TodoListItem extends ConsumerWidget {
               child: const Text('キャンセル'),
             ),
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(context, controller.text.trim()), // 入力値を返して閉じる
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
               child: const Text('保存'),
             ),
           ],
@@ -37,15 +36,14 @@ class TodoListItem extends ConsumerWidget {
     );
 
     if (result != null && result.isNotEmpty) {
-      final originalIndex = ref.read(todoListProvider).indexOf(todo);
-      ref.read(todoListProvider.notifier).editTodo(originalIndex, result);
+      ref.read(todoActionsProvider).editTodo(todo, result);
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Dismissible(
-      key: ValueKey(todo),
+      key: ValueKey(todo.id), // ← IDベースに変更
       direction: DismissDirection.endToStart,
       background: Container(
         color: Colors.red,
@@ -54,8 +52,7 @@ class TodoListItem extends ConsumerWidget {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (direction) {
-        final originalIndex = ref.read(todoListProvider).indexOf(todo);
-        ref.read(todoListProvider.notifier).removeAt(originalIndex);
+        ref.read(todoActionsProvider).removeTodo(todo.id);
       },
       child: ListTile(
         title: GestureDetector(
@@ -73,8 +70,7 @@ class TodoListItem extends ConsumerWidget {
         trailing: Checkbox(
           value: todo.isDone,
           onChanged: (value) {
-            final originalIndex = ref.read(todoListProvider).indexOf(todo);
-            ref.read(todoListProvider.notifier).toggleDone(originalIndex);
+            ref.read(todoActionsProvider).toggleDone(todo);
           },
         ),
       ),

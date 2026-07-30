@@ -16,7 +16,7 @@ class _TodoInputFieldState extends ConsumerState<TodoInputField> {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 
-    ref.read(todoListProvider.notifier).addTodo(text);
+    ref.read(todoActionsProvider).addTodo(text); // ← todoActionsProvider経由に変更
     _textController.clear();
   }
 
