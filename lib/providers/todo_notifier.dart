@@ -46,17 +46,27 @@ class TodoActions {
   final Ref ref;
   TodoActions(this.ref);
 
-  void addTodo(String title) {
-    ref.read(todoRepositoryProvider).addTodo(title);
+  void addTodo(String title, {DateTime? dueDate}) {
+    ref.read(todoRepositoryProvider).addTodo(title, dueDate: dueDate);
   }
 
   void toggleDone(Todo todo) {
-    final updated = Todo(id: todo.id, title: todo.title, isDone: !todo.isDone);
+    final updated = Todo(
+      id: todo.id,
+      title: todo.title,
+      isDone: !todo.isDone,
+      dueDate: todo.dueDate,
+    );
     ref.read(todoRepositoryProvider).updateTodo(updated);
   }
 
-  void editTodo(Todo todo, String newTitle) {
-    final updated = Todo(id: todo.id, title: newTitle, isDone: todo.isDone);
+  void editTodo(Todo todo, String newTitle, {DateTime? newDueDate}) {
+    final updated = Todo(
+      id: todo.id,
+      title: newTitle,
+      isDone: todo.isDone,
+      dueDate: newDueDate,
+    );
     ref.read(todoRepositoryProvider).updateTodo(updated);
   }
 

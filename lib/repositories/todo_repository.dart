@@ -26,15 +26,21 @@ class TodoRepository {
           id: doc.id,
           title: data['title'],
           isDone: data['isDone'],
+          dueDate: data['dueDate'] != null
+              ? (data['dueDate'] as Timestamp).toDate() // ← Firestore独自の日付型を変換
+              : null,
         );
       }).toList();
     });
   }
 
-  Future<void> addTodo(String title) async {
+  Future<void> addTodo(String title, {DateTime? dueDate}) async {
     await _todosCollection.add({
       'title': title,
       'isDone': false,
+      'dueDate': dueDate != null
+          ? Timestamp.fromDate(dueDate)
+          : null, // ← Dartの日付をFirestore用に変換
     });
   }
 
@@ -42,6 +48,8 @@ class TodoRepository {
     await _todosCollection.doc(todo.id).update({
       'title': todo.title,
       'isDone': todo.isDone,
+      'dueDate':
+          todo.dueDate != null ? Timestamp.fromDate(todo.dueDate!) : null,
     });
   }
 
