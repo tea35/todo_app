@@ -67,6 +67,16 @@ class TodoListItem extends ConsumerWidget {
             ),
           ),
         ),
+        subtitle: todo.dueDate != null
+            ? Text(
+                '期限: ${todo.dueDate!.year}/${todo.dueDate!.month}/${todo.dueDate!.day}',
+                style: TextStyle(
+                  color: todo.dueDate!.isBefore(DateTime.now()) && !todo.isDone
+                      ? Colors.red
+                      : Colors.grey,
+                ),
+              )
+            : null,
         trailing: Checkbox(
           value: todo.isDone,
           onChanged: (value) {
