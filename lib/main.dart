@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
+import 'services/notification_service.dart';
 import 'screens/todo_list_screen.dart';
 
 void main() async {
@@ -14,6 +15,9 @@ void main() async {
   if (FirebaseAuth.instance.currentUser == null) {
     await FirebaseAuth.instance.signInAnonymously();
   }
+
+  await NotificationService().init();
+  await NotificationService().requestPermission();
 
   runApp(
     const ProviderScope(

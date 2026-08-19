@@ -69,7 +69,8 @@ class TodoListItem extends ConsumerWidget {
         ),
         subtitle: todo.dueDate != null
             ? Text(
-                '期限: ${todo.dueDate!.year}/${todo.dueDate!.month}/${todo.dueDate!.day}',
+                '期限: ${todo.dueDate!.year}/${todo.dueDate!.month}/${todo.dueDate!.day} '
+                '${todo.dueDate!.hour.toString().padLeft(2, '0')}:${todo.dueDate!.minute.toString().padLeft(2, '0')}',
                 style: TextStyle(
                   color: todo.dueDate!.isBefore(DateTime.now()) && !todo.isDone
                       ? Colors.red

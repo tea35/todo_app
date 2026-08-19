@@ -27,18 +27,31 @@ class _TodoInputFieldState extends ConsumerState<TodoInputField> {
   }
 
   Future<void> _pickDueDate() async {
-    final picked = await showDatePicker(
+    final pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
 
-    if (picked != null) {
-      setState(() {
-        _selectedDueDate = picked;
-      });
-    }
+    if (pickedDate == null || !mounted) return; // 日付選択がキャンセルされたら、ここで終了
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime == null) return; // 時刻選択がキャンセルされたら終了
+
+    setState(() {
+      _selectedDueDate = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+    });
   }
 
   @override
@@ -81,7 +94,8 @@ class _TodoInputFieldState extends ConsumerState<TodoInputField> {
                 label: Text(
                   _selectedDueDate == null
                       ? '期限を設定'
-                      : '${_selectedDueDate!.year}/${_selectedDueDate!.month}/${_selectedDueDate!.day}',
+                      : '${_selectedDueDate!.year}/${_selectedDueDate!.month}/${_selectedDueDate!.day} '
+                          '${_selectedDueDate!.hour.toString().padLeft(2, '0')}:${_selectedDueDate!.minute.toString().padLeft(2, '0')}',
                 ),
               ),
               if (_selectedDueDate != null)

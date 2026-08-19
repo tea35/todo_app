@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/todo.dart';
 import '../models/todo_filter.dart';
 import '../repositories/todo_repository.dart';
+import '../services/notification_service.dart';
 
 final todoRepositoryProvider = Provider<TodoRepository>((ref) {
   return TodoRepository();
@@ -29,7 +30,6 @@ final filteredTodoListProvider = Provider<List<Todo>>((ref) {
   final todosAsync = ref.watch(todoListStreamProvider);
   final filter = ref.watch(todoFilterProvider);
 
-  // todosAsyncは「読み込み中」「エラー」「成功」のいずれかの状態を持つ(後述)
   final todos = todosAsync.value ?? [];
 
   switch (filter) {
@@ -46,8 +46,18 @@ class TodoActions {
   final Ref ref;
   TodoActions(this.ref);
 
-  void addTodo(String title, {DateTime? dueDate}) {
-    ref.read(todoRepositoryProvider).addTodo(title, dueDate: dueDate);
+  void addTodo(String title, {DateTime? dueDate}) async {
+    await ref.read(todoRepositoryProvider).addTodo(title, dueDate: dueDate);
+
+    if (dueDate != null) {
+      final notificationId =
+          DateTime.now().millisecondsSinceEpoch.remainder(100000);
+      await NotificationService().scheduleNotification(
+        id: notificationId,
+        title: title,
+        scheduledDate: dueDate,
+      );
+    }
   }
 
   void toggleDone(Todo todo) {
