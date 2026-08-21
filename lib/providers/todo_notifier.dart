@@ -42,6 +42,8 @@ final filteredTodoListProvider = Provider<List<Todo>>((ref) {
   }
 });
 
+final localOrderedTodosProvider = StateProvider<List<Todo>?>((ref) => null);
+
 class TodoActions {
   final Ref ref;
   TodoActions(this.ref);
@@ -84,8 +86,31 @@ class TodoActions {
     ref.read(todoRepositoryProvider).deleteTodo(id);
   }
 
-  void reorder(int oldIndex, int newIndex) {
-    // 注意: Firestoreでの並び替えは別途対応が必要(後述)
+  Future<void> saveOrder(List<Todo> reorderedTodos) async {
+    await ref.read(todoRepositoryProvider).updateOrder(reorderedTodos);
+  }
+
+  Future<void> reorder(
+      List<Todo> currentList, int oldIndex, int newIndex) async {
+    try {
+      print('並び替え前: ${currentList.map((t) => t.title).toList()}');
+      print('oldIndex: $oldIndex, newIndex: $newIndex');
+
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+
+      final newList = [...currentList];
+      final item = newList.removeAt(oldIndex);
+      newList.insert(newIndex, item);
+
+      print('並び替え後: ${newList.map((t) => t.title).toList()}');
+
+      await ref.read(todoRepositoryProvider).updateOrder(newList);
+      print('並び替え成功');
+    } catch (e) {
+      print('並び替えエラー: $e');
+    }
   }
 }
 

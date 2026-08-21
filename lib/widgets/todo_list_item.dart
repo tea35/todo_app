@@ -43,7 +43,7 @@ class TodoListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Dismissible(
-      key: ValueKey(todo.id), // ← IDベースに変更
+      key: ValueKey('dismissible_${todo.id}'),
       direction: DismissDirection.endToStart,
       background: Container(
         color: Colors.red,
